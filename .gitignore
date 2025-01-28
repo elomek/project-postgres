@@ -1,0 +1,11 @@
+*.pyc
+__pycach__/
+venv/
+.env/
+.vscode/
+*.log
+*.tmp
+*.pyc
+*.pyo
+*.sqlite3
+staticfiles/
