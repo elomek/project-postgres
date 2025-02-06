@@ -2,6 +2,10 @@ import os
 import pandas as pd
 import numpy as np
 from django.db import transaction
+from django.db import connections
+from django.db import IntegrityError
+from reviews.models import Review, Department, Division, ProductClass
+
 
 
 
@@ -39,15 +43,155 @@ def download_kaggle_dataset():
     print(df_part1.shape[0], 'part1')
     print(df_part2.shape[0],'part2')
 
+    # **ذخیره در PostgreSQL**
+    save_to_database(df_part1, "postgresql")
+
+    # **ذخیره در SQLite**
+    save_to_database(df_part2, "default")
 
 
+def save_to_database(df, db_alias):
 
 
+    for _, row in df.iterrows():
+        try:
+            # **ایجاد Division، Department و ProductClass فقط در صورت عدم وجود**
+            division, _ = Division.objects.get_or_create(name=row.get('Division Name', 'Unknown Division'))
+            department, _ = Department.objects.get_or_create(name=row.get('Department Name', 'Unknown Department'))
+            product_class, _ = ProductClass.objects.get_or_create(name=row.get("Class Name", 'Unknown Class'))
+
+            # **مدیریت مقدار rating**
+            try:
+                rating = int(row["Rating"])
+            except (ValueError, TypeError):
+                rating = 3  # مقدار پیش‌فرض
+
+            title = row["Title"]
+            content = row["Review Text"]
+
+            # **بررسی و جلوگیری از داده‌های تکراری**
+            review, created = Review.objects.using(db_alias).get_or_create(
+                title=title,
+                content=content,
+                rating=rating,
+                division=division,
+                department=department,
+                product_class=product_class,
+            )
+
+            if created:
+                print(f"Review for '{title}' saved in {db_alias}.")
+            else:
+                print(f"Review for '{title}' already exists in {db_alias}.")
+
+        except IntegrityError as e:
+            print(f"IntegrityError: {e} - Skipping row: {row.to_dict()}")
+            continue
+        
+        except Exception as e:
+            print(f"Unexpected error: {e} - Skipping row: {row.to_dict()}")
+            continue
+
+    print(f"Data successfully saved in {db_alias}!")
 
 
 def run():
     print("Le script fonctionne !")
-    download_kaggle_dataset() 
+    download_kaggle_dataset()
+
+
+
+
+    '''for _, row in df_part1.iterrows(): 
+        try:
+            # جلوگیری از ایجاد داده‌های تکراری برای Division
+            division, _ = Division.objects.get_or_create(name=row.get('Division Name', 'Unknown Division'))
+            
+            # جلوگیری از ایجاد داده‌های تکراری برای Department
+            department, _ = Department.objects.get_or_create(name=row.get('Department Name', 'Unknown Department'))
+            
+            # جلوگیری از ایجاد داده‌های تکراری برای ProductClass
+            product_class, _ = ProductClass.objects.get_or_create(name=row.get("Class Name", 'Unknown Class'))
+            
+            # مدیریت مقادیر ناقص برای Review
+            title = row["Title"]
+            content = row["Review Text"]
+            rating =int(row["Rating"]) if not pd.isna(row["Rating"]) else 3
+            
+            
+            
+            # ایجاد و ذخیره یک نظر
+            review = Review.objects.create(
+                title=title,
+                content=content,
+                rating=rating,
+                division=division,
+                department=department,
+                product_class=product_class
+            )
+            
+            print(f"Review for '{title}' saved in PostgreSQL..")
+
+        except IntegrityError as e:
+            print(f"IntegrityError: {e} -  Row data: {row.to_dict()} - Skipping row.")
+            continue
+        
+        except Exception as e:
+            print(f"Unexpected error: {e} -  Row data: {row.to_dict()} - Skipping row.")
+            continue
+    if not Review.objects.using('default').filter(content=review.content).exists():
+        review.save(using='default')
+    print("df_part1 ont été sauvegardées dans postgreSQL avec succès !")
+
+
+    for _, row in df_part2.iterrows(): 
+        try:
+            # جلوگیری از ایجاد داده‌های تکراری برای Division
+            division, _ = Division.objects.get_or_create(name=row.get('Division Name', 'Unknown Division'))
+            
+            # جلوگیری از ایجاد داده‌های تکراری برای Department
+            department, _ = Department.objects.get_or_create(name=row.get('Department Name', 'Unknown Department'))
+            
+            # جلوگیری از ایجاد داده‌های تکراری برای ProductClass
+            product_class, _ = ProductClass.objects.get_or_create(name=row.get("Class Name", 'Unknown Class'))
+            
+            # مدیریت مقادیر ناقص برای Review
+            title = row["Title"]
+            content = row["Review Text"]
+            rating =int(row["Rating"]) if not pd.isna(row["Rating"]) else 3
+            
+            print(f"Division: {division.id}, Department: {department.id}, ProductClass: {product_class.id}")
+
+            # ایجاد و ذخیره یک نظر
+            review, created = Review.objects.get_or_create(
+                title=title,
+                content=content,
+                rating=rating,
+                division=division,
+                department=department,
+                product_class=product_class
+            )
+            if created:
+                print(f"Review for '{title}' saved in SQLite.")
+            else:
+                print(f"Review for '{title}' already exists.")
+            
+
+        except IntegrityError as e:
+            print(f"IntegrityError: {e} -  Row data: {row.to_dict()} - Skipping row.")
+            continue
+        
+        except Exception as e:
+            print(f"Unexpected error: {e} -  Row data: {row.to_dict()} - Skipping row.")
+            continue
+
+    if not Review.objects.using('sqlite').filter(content=review.content).exists():
+ 
+        review.save(using='sqlite')
+    print("df_part2 ont été sauvegardées dans sqlit3 avec succès !")'''
+
+
+
     #python manage.py shell
     #from reviews.scripts import script
     #script.run()
