@@ -3,14 +3,14 @@ from django.db import models
 
 
 class Division(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, default="Unknown")
 
 
 class Department(models.Model):
-    name = models.CharField(max_length=255) 
+    name = models.CharField(max_length=255, default="Unknown") 
     
 class ProductClass(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, default="Unknown")
 
 
 
@@ -24,7 +24,7 @@ class Review(models.Model):
         (5, '⭐⭐⭐⭐⭐'),
     ]
 
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, blank=True, null=True)
     content = models.TextField(unique=True)
     rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES)
     date_time = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -41,4 +41,4 @@ class Review(models.Model):
         pass
 
     def __str__(self):
-        return self.title
+        return self.title if self.title else f"Review {self.id}"

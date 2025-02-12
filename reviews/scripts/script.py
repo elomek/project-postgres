@@ -10,6 +10,7 @@ from reviews.models import Review, Department, Division, ProductClass
 
 
 
+
 def download_kaggle_dataset():
     os.environ['KAGGLE_USERNAME'] = os.getenv('KAGGLE_USERNAME')
     os.environ['KAGGLE_KEY'] = os.getenv('KAGGLE_KEY')
@@ -186,7 +187,7 @@ def run():
             continue
 
     if not Review.objects.using('sqlite').filter(content=review.content).exists():
- 
+
         review.save(using='sqlite')
     print("df_part2 ont été sauvegardées dans sqlit3 avec succès !")'''
 
@@ -195,3 +196,4 @@ def run():
     #python manage.py shell
     #from reviews.scripts import script
     #script.run()
+

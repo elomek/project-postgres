@@ -85,7 +85,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 import os
 from dotenv import load_dotenv
 load_dotenv()
-
+DATABASE_ROUTERS = ['config.database_router.ForcePostgresqlRouter']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -144,3 +144,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
