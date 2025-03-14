@@ -14,7 +14,7 @@ if not api_key:
 def fetch_popular_movies():
     url = f"https://api.themoviedb.org/3/movie/popular?api_key={api_key}&language=en-US&page=1"
     response = requests.get(url)
-    time.sleep(3)
+    time.sleep(10)
     if response.status_code == 200:
         data = response.json()
         return response.json()["results"]
@@ -28,7 +28,7 @@ def fetch_reviews(movie_id):
     while True:
         url = f"https://api.themoviedb.org/3/movie/{movie_id}/reviews?api_key={api_key}&page={page}"
         response = requests.get(url)
-        time.sleep(3)
+        time.sleep(10)
         if response.status_code == 200:
             data = response.json()
             reviews.extend(data["results"])
