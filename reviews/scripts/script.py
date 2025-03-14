@@ -15,8 +15,8 @@ def download_kaggle_dataset():
     os.environ['KAGGLE_USERNAME'] = os.getenv('KAGGLE_USERNAME')
     os.environ['KAGGLE_KEY'] = os.getenv('KAGGLE_KEY')
     #kaggle datasets download -d nicapotato/womens-ecommerce-clothing-reviews > در ترمینال اجرا شود
-    #unzip /Users/elhamkaramian/Desktop/poroject-PostgreSQL/womens-ecommerce-clothing-reviews.zip -d /Users/elhamkaramian/Desktop/poroject-PostgreSQL # با استفاده از دستور فایل زیپ را اکسترکت کردم
-    df = pd.read_csv("/Users/elhamkaramian/Desktop/poroject-PostgreSQL/Womens Clothing E-Commerce Reviews.csv")
+    #unzip /Users/elhamkaramian/Desktop/project_sentimentanalysis/womens-ecommerce-clothing-reviews.zip -d /Users/elhamkaramian/Desktop/project_sentimentanalysis # با استفاده از دستور فایل زیپ را اکسترکت کردم
+    df = pd.read_csv("/Users/elhamkaramian/Desktop/project_sentimentanalysis/Womens Clothing E-Commerce Reviews.csv")
     print(df.head())
 
 
@@ -38,17 +38,17 @@ def download_kaggle_dataset():
 
     #The dataset was divided into two equal parts  
     df_part1, df_part2 = np.array_split(df, 2)
-    os.makedirs("/Users/elhamkaramian/Desktop/poroject-PostgreSQL", exist_ok=True)
-    df_part1.to_csv("/Users/elhamkaramian/Desktop/poroject-PostgreSQL/part1.csv", index=False)
-    df_part2.to_csv("/Users/elhamkaramian/Desktop/poroject-PostgreSQL/part2.csv", index=False)
+    os.makedirs("/Users/elhamkaramian/Desktop/project_sentimentanalysis", exist_ok=True)
+    df_part1.to_csv("/Users/elhamkaramian/Desktop/project_sentimentanalysis/part1.csv", index=False)
+    df_part2.to_csv("/Users/elhamkaramian/Desktop/project_sentimentanalysis/part2.csv", index=False)
     print(df_part1.shape[0], 'part1')
     print(df_part2.shape[0],'part2')
 
     # **ذخیره در PostgreSQL**
-    save_to_database(df_part1, "postgresql")
+    save_to_database(df_part1, "default")
 
     # **ذخیره در SQLite**
-    save_to_database(df_part2, "default")
+    #save_to_database(df_part2, "default")
 
 
 def save_to_database(df, db_alias):
@@ -96,6 +96,40 @@ def save_to_database(df, db_alias):
     print(f"Data successfully saved in {db_alias}!")
 
 
+
+# استخراج داده‌ها از SQLite و ذخیره‌سازی آنها در Postgresql -->Django ORM
+    '''for division in Division.objects.using('default').all():
+        if not Division.objects.using("postgresql").filter(name=division.name).exists():
+            Division.objects.using("postgresql").get_or_create(
+                name=division.name
+        )
+    for department in Department.objects.using('default').all():
+        if not Department.objects.using("postgresql").filter(name=department.name).exists():
+            Department.objects.using("postgresql").create(
+                name=department.name
+            )
+    for product_class in ProductClass.objects.using('default').all():
+        if not ProductClass.objects.using("postgresql").filter(name=product_class.name).exists():
+            ProductClass.objects.using("postgresql").create(
+                name=product_class.name
+            )
+        
+    for review in Review.objects.using('default').all():
+        if not Review.objects.using("postgresql").filter(
+            title=review.title, 
+            content=review.content, 
+            date_time=review.date_time
+        ).exists():
+            Review.objects.using("postgresql").create(
+                title=review.title,
+                content=review.content,
+                date_time=review.date_time,
+                division=review.division, 
+                department=review.department, 
+                product_class=review.product_class
+            )'''
+
+
 def run():
     print("Le script fonctionne !")
     download_kaggle_dataset()
@@ -103,97 +137,44 @@ def run():
 
 
 
-    '''for _, row in df_part1.iterrows(): 
-        try:
-            # جلوگیری از ایجاد داده‌های تکراری برای Division
-            division, _ = Division.objects.get_or_create(name=row.get('Division Name', 'Unknown Division'))
-            
-            # جلوگیری از ایجاد داده‌های تکراری برای Department
-            department, _ = Department.objects.get_or_create(name=row.get('Department Name', 'Unknown Department'))
-            
-            # جلوگیری از ایجاد داده‌های تکراری برای ProductClass
-            product_class, _ = ProductClass.objects.get_or_create(name=row.get("Class Name", 'Unknown Class'))
-            
-            # مدیریت مقادیر ناقص برای Review
-            title = row["Title"]
-            content = row["Review Text"]
-            rating =int(row["Rating"]) if not pd.isna(row["Rating"]) else 3
-            
-            
-            
-            # ایجاد و ذخیره یک نظر
-            review = Review.objects.create(
-                title=title,
-                content=content,
-                rating=rating,
-                division=division,
-                department=department,
-                product_class=product_class
-            )
-            
-            print(f"Review for '{title}' saved in PostgreSQL..")
 
-        except IntegrityError as e:
-            print(f"IntegrityError: {e} -  Row data: {row.to_dict()} - Skipping row.")
-            continue
+
+
+
+
+   
+
+
         
-        except Exception as e:
-            print(f"Unexpected error: {e} -  Row data: {row.to_dict()} - Skipping row.")
-            continue
-    if not Review.objects.using('default').filter(content=review.content).exists():
-        review.save(using='default')
-    print("df_part1 ont été sauvegardées dans postgreSQL avec succès !")
-
-
-    for _, row in df_part2.iterrows(): 
-        try:
-            # جلوگیری از ایجاد داده‌های تکراری برای Division
-            division, _ = Division.objects.get_or_create(name=row.get('Division Name', 'Unknown Division'))
-            
-            # جلوگیری از ایجاد داده‌های تکراری برای Department
-            department, _ = Department.objects.get_or_create(name=row.get('Department Name', 'Unknown Department'))
-            
-            # جلوگیری از ایجاد داده‌های تکراری برای ProductClass
-            product_class, _ = ProductClass.objects.get_or_create(name=row.get("Class Name", 'Unknown Class'))
-            
-            # مدیریت مقادیر ناقص برای Review
-            title = row["Title"]
-            content = row["Review Text"]
-            rating =int(row["Rating"]) if not pd.isna(row["Rating"]) else 3
-            
-            print(f"Division: {division.id}, Department: {department.id}, ProductClass: {product_class.id}")
-
-            # ایجاد و ذخیره یک نظر
-            review, created = Review.objects.get_or_create(
-                title=title,
-                content=content,
-                rating=rating,
-                division=division,
-                department=department,
-                product_class=product_class
-            )
-            if created:
-                print(f"Review for '{title}' saved in SQLite.")
-            else:
-                print(f"Review for '{title}' already exists.")
-            
-
-        except IntegrityError as e:
-            print(f"IntegrityError: {e} -  Row data: {row.to_dict()} - Skipping row.")
-            continue
-        
-        except Exception as e:
-            print(f"Unexpected error: {e} -  Row data: {row.to_dict()} - Skipping row.")
-            continue
-
-    if not Review.objects.using('sqlite').filter(content=review.content).exists():
-
-        review.save(using='sqlite')
-    print("df_part2 ont été sauvegardées dans sqlit3 avec succès !")'''
-
-
-
     #python manage.py shell
     #from reviews.scripts import script
     #script.run()
 
+'''def get_all_reviews(movie_id ):
+    reviews = []
+    page = 1
+    
+    while True:
+        url =  f"https://api.themoviedb.org/3/movie/{movie_id}/reviews?api_key={api_key}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()    # data be soorate yek dictionaire ast
+            reviews.extend(data.get['results', []])
+            total_page = data.get['total_page',0]
+
+            if page>= total_page:
+                break
+                page += 1
+
+            else: 
+                print(f"Erreur lors de la récupération des données: {response.status_code}")
+                break
+
+        return reviews
+            
+
+
+  
+all_reviews = get_all_reviews(movie_id)         
+
+print(json.dumps(all_reviews[:5], indent=4, ensure_ascii=False))  # نمایش خوانا و فرمت‌شده'''
