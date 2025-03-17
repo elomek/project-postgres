@@ -31,7 +31,7 @@ def save_reviews(new_reviews):
         json.dump(existing_data, file, indent=4, ensure_ascii=False)
 
     print(f"✅ {len(new_reviews)} new reviews added to the file.")
-
+    print(f"📊 تعداد کل نظرات: {len(existing_data)}") 
 # Test execution
 def run():
     # New data to be added

@@ -17,8 +17,9 @@ def fetch_popular_movies():
     time.sleep(10)
     if response.status_code == 200:
         data = response.json()
-        return response.json()["results"]
-    print(f"Error fetching popular movies: {response.status_code}")
+        if "reviews" in data and data["reviews"]:  # بررسی وجود و خالی نبودن لیست
+            return data["reviews"]
+    print(f"Error fetching popular movies or no reviews found: {response.status_code}")
     return []
 
 # دریافت نظرات تمامی صفحات برای هر فیلم

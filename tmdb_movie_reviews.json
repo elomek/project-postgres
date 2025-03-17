@@ -483,5 +483,35 @@
         "movie": "What We Wrote Together",
         "movie_id": 1353002,
         "reviews": []
+    },
+    {
+        "movie": "Inception",
+        "review": "Great!",
+        "rating": 5
+    },
+    {
+        "movie": "Avatar",
+        "review": "Awesome!",
+        "rating": 4.5
+    },
+    {
+        "movie": "Inception",
+        "review": "Great!",
+        "rating": 5
+    },
+    {
+        "movie": "Avatar",
+        "review": "Awesome!",
+        "rating": 4.5
+    },
+    {
+        "movie": "Inception",
+        "review": "Great!",
+        "rating": 5
+    },
+    {
+        "movie": "Avatar",
+        "review": "Awesome!",
+        "rating": 4.5
     }
 ]
